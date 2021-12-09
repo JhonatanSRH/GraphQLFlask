@@ -30,18 +30,35 @@ class BookMutation(graphene.Mutation):
 class BookSourceMutation(graphene.Mutation):
     
     class Arguments:
-        book_id = graphene.Int(required=True)
-        source = graphene.String(required=True)
+        book_id = graphene.String(required=True)
+        source = graphene.Int(required=True)
 
     book = graphene.Field(lambda: Book)
 
     def mutate(self, info, book_id, source=1):
         if source == 1:
             google_result = get('https://www.googleapis.com/books/v1/volumes/{}'.format(book_id))
-            book = instance_books(google_result, 1)
+            google_result['volumeInfo']['publishedDate'] = google_result['volumeInfo'].get('publishedDate', '2021-01-01').split("-")
+            if len(google_result['volumeInfo']['publishedDate']) == 1 or len(google_result['volumeInfo']['publishedDate']) > 3:
+                google_result['volumeInfo']['publishedDate'] = google_result['volumeInfo']['publishedDate'][0]+'-01-01'
+            if len(google_result['volumeInfo']['publishedDate']) == 2:
+                if len(google_result['volumeInfo']['publishedDate'][1]) > 2: 
+                    google_result['volumeInfo']['publishedDate'] = google_result['volumeInfo']['publishedDate'][0]+'-01-01'
+                else:
+                    google_result['volumeInfo']['publishedDate'] = '-'.join(google_result['volumeInfo']['publishedDate'])+'-01'
+            if len(google_result['volumeInfo']['publishedDate']) == 3:
+                if len(google_result['volumeInfo']['publishedDate'][1]) > 2: 
+                    google_result['volumeInfo']['publishedDate'] = google_result['volumeInfo']['publishedDate'][0]+'-01-01'
+                if len(google_result['volumeInfo']['publishedDate'][2]) > 2:
+                    google_result['volumeInfo']['publishedDate'] = '-'.join(google_result['volumeInfo']['publishedDate'])+'-01'
+                else:
+                    google_result['volumeInfo']['publishedDate'] = '-'.join(google_result['volumeInfo']['publishedDate'])
+            book = instance_books([google_result], 1, mutate=True)[0]
         if source == 2:
             api_result = get('https://api.nytimes.com/svc/books/v3/lists/best-sellers/history.json?isbn={}api-key=7ZOgGGznc9VlmTPVAZKvc4HVejWL4jyQ'.format(book_id))
-            book = instance_books(api_result.get('books', []), 2)
+            book = instance_books(api_result.get('books', []), 2, mutate=True)[0]
+        db.session.add(book)
+        db.session.commit()
         return BookMutation(book=book)
 
 class DeleteBook(graphene.Mutation):

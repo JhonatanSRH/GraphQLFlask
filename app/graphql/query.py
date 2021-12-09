@@ -16,25 +16,43 @@ def instance_books(data_list, option, **kwargs):
     instances = []
     if option == 1:
         for data in data_list:
-            book = BookModel(book_id=data['id'], 
-                             title=data['volumeInfo'].get('title', ''), 
-                             subtitle=data['volumeInfo'].get('subtitle', ''), 
-                             author=data['volumeInfo'].get('authors', [''])[0], 
-                             publication_date=data['volumeInfo'].get('publishedDate', ''), 
-                             publisher=data['volumeInfo'].get('industryIdentifiers', [{}])[0].get('identifier', ''), 
-                             description=data['volumeInfo'].get('description', ''), 
-                             category_id=option)
+            if kwargs.get('mutate'):
+                book = BookModel(title=data['volumeInfo'].get('title', ''), 
+                                 subtitle=data['volumeInfo'].get('subtitle', ''),
+                                 author=data['volumeInfo'].get('authors', [''])[0],
+                                 publication_date=data['volumeInfo'].get('publishedDate', ''), 
+                                 publisher=data['volumeInfo'].get('industryIdentifiers', [{}])[0].get('identifier', ''),
+                                 description=data['volumeInfo'].get('description', ''),
+                                 category_id=option)
+            else:
+                book = BookModel(book_id=data['id'], 
+                                 title=data['volumeInfo'].get('title', ''), 
+                                 subtitle=data['volumeInfo'].get('subtitle', ''),
+                                 author=data['volumeInfo'].get('authors', [''])[0],
+                                 publication_date=data['volumeInfo'].get('publishedDate', ''), 
+                                 publisher=data['volumeInfo'].get('industryIdentifiers', [{}])[0].get('identifier', ''),
+                                 description=data['volumeInfo'].get('description', ''),
+                                 category_id=option)
             instances.append(book)
     if option == 2:
         for data in data_list:
-            book = BookModel(book_id=data['primary_isbn13'], 
-                             title=data.get('title', ''), 
-                             subtitle=data.get('title', ''), 
-                             author=data.get('author', ''), 
-                             publication_date=kwargs.get('publishedDate', ''), 
-                             publisher=data.get('publisher', ''), 
-                             description=data.get('description', ''), 
-                             category_id=option)
+            if kwargs.get('mutate'):
+                book = BookModel(title=data.get('title', ''), 
+                                 subtitle=data.get('title', ''), 
+                                 author=data.get('author', ''), 
+                                 publication_date=data.get('ranks_history', [{}])[0].get('published_date', '2021-01-01'), 
+                                 publisher=data.get('publisher', ''),
+                                 description=data.get('description', ''),
+                                 category_id=option)
+            else:
+                book = BookModel(book_id=data['primary_isbn13'], 
+                                 title=data.get('title', ''), 
+                                 subtitle=data.get('title', ''), 
+                                 author=data.get('author', ''), 
+                                 publication_date=kwargs.get('publishedDate', ''), 
+                                 publisher=data.get('publisher', ''),
+                                 description=data.get('description', ''),
+                                 category_id=option)
             instances.append(book)
     return instances
 
