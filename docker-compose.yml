@@ -1,12 +1,21 @@
-version: '3.8'
+# docker-compose.yml
+version: "3.5"
+
+networks:
+ fluxit:
+  name: fluxit
 
 services:
-  web:
-    build: ./services/web
-    command: python manage.py run -h 0.0.0.0
-    volumes:
-      - ./services/web/:/usr/src/app/
-    ports:
-      - 5000:5000
-    env_file:
-      - ./.env.dev
+
+ server:
+   container_name: skills_app
+   build: .
+   hostname: skills_app
+   networks:
+     - fluxit
+   ports:
+     - "5000:5000"
+   volumes: [".:/usr/src/app"]
+   restart: always
+   environment:
+     ENV: DEVELOPMENT
